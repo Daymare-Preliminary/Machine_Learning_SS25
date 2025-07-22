@@ -1,0 +1,94 @@
+%genral math
+
+
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage[backend = biber]{biblatex}
+\addbibresource{References.bib}
+\usepackage[colorlinks=true,unicode]{hyperref}
+\usepackage[capitalise]{cleveref}
+\usepackage{microtype}
+\usepackage[shortlabels]{enumitem}
+\usepackage{dsfont}
+\usepackage{mathabx}
+\usepackage{comment}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{todonotes}
+\usepackage{emoji}
+\usepackage{algpseudocode}
+
+
+
+
+
+
+% commutative diagrams/diagrams
+
+\usepackage{tikz-cd}
+\usepackage{tikz}
+\usetikzlibrary{graphs}
+\usetikzlibrary{positioning}
+\usetikzlibrary{decorations.pathreplacing, calc}
+\usetikzlibrary{shapes.geometric}
+
+
+%New Commands
+\newcounter{dummy} \numberwithin{dummy}{section}
+\newtheorem{qu}[dummy]{Question}
+\newtheorem{prop}[dummy]{Proposition}
+\newtheorem{thm}[dummy]{Theorem}
+\newtheorem{cor}[dummy]{Corollary}
+\newtheorem{lem}[dummy]{Lemma}
+\theoremstyle{definition}
+\newtheorem{defi}[dummy]{Definition}
+\newtheorem{defi/prop}[dummy]{Definition/Proposition}
+\newtheorem{exmp}[dummy]{Example}
+\newtheorem{rmk}[dummy]{Remark}
+\newtheorem{construction}[dummy]{Construction}
+\newtheorem{problem}[dummy]{Problem}
+\newtheorem{Warning}[dummy]{Warning!}
+\newtheorem{Motivation}{Motivation}
+\newtheorem{algo}{Algorithm}
+\newtheorem{recipe}{Recipe}
+
+
+\newcounter{Exercise}[subsection]
+\newenvironment{Exercise}[1][]{\refstepcounter{Exercise}\par\medskip
+   \noindent\textbf{Exercise~\theExercise. #1} \rmfamily}{\medskip}
+
+\newcounter{Solution}[subsection]
+\newenvironment{Solution}[1][]{\refstepcounter{Solution}\par\medskip
+   \noindent\textbf{Solution~\theSolution. #1} \rmfamily}{\medskip}
+
+
+%General Math notation
+
+\DeclareMathOperator{\act}{act}
+\DeclareMathOperator{\sigmoid}{sigmoid}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator{\encode}{encode}
+\DeclareMathOperator{\decode}{decode}
+\DeclareMathOperator{\Dom}{Dom}
+\DeclareMathOperator{\ReLU}{ReLU}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newcommand{\ured}[1]{{\color{red}\ul{#1}}}
+\newcommand{\ublue}[1]{{\color{SteelBlue}\ul{#1}}}
+\newcommand{\ugreen}[1]{{\color{green}\ul{#1}}}
+

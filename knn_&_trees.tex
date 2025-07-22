@@ -1,0 +1,276 @@
+\section{knn}
+
+
+\begin{Construction}{k-NN}
+    Let $ \mathcal{ D } = \{ ( x_i , y_i ) \}_{ i = 1 }^N $ be a training set where $ x_i $ are the features and $ y_i $ are the targets.
+    To classify new observations:
+    \begin{enumerate}
+        \item 
+        Define a distance (e.g. Euclidean distance) 
+
+        \item 
+        Compute the $ k $ nearest neighbors for a new data point
+
+        \item 
+        Label it with the majority label of its $ k $ nearest neighbors.
+    \end{enumerate}
+\end{Construction}
+
+\begin{defi}{unweighted k-NN}
+    Let $ \mathcal{ D } = \{ ( x_i , y_i ) \}_{ i = 1 }^N $ be a training set where $ x_i $ are the features and $ y_i $ are the targets.
+    Let $ \mathcal{ N }_k ( x ) $ be the $ k $ nearest neighbors of $ x $ in $ \mathcal{ D } $.
+    The probability of class $ c $ is:
+    \[
+        p ( y = c \mid x , k ) 
+        = 
+        \frac{ 1 }{ k } \sum_{ i \in \mathcal{ N }_k ( x ) } \mathbb{ I } ( y_i = c ) 
+    \]
+    and the prediction is given by 
+    \[
+        \widehat{ y } 
+        = 
+        \arg \max_c p ( y = c \mid x , k ).
+    \]
+\end{defi}
+
+\begin{rmk}
+    For 1-nearest neighbor and two dimensions, the decision boundaries (lines in the 2d-plane such that every region cut out corresponds to a label) correspond to a Voronoi tesselation in the unweighted case.
+\end{rmk}
+
+\begin{defi}{weighted k-NN}
+    Let $ \mathcal{ N }_k ( x ) $ be the $ k $ nearest neighbors of $ x $ in $ \mathcal{ D } $.
+    The probability of class $ c $ is:
+    \[
+        p ( y = c \mid x , k ) 
+        = 
+        \frac{ 1 }{ Z } \sum_{ i \in \mathcal{ N }_k ( x ) }
+        \frac{ 1 }{ d ( x , x_i ) } \mathbb{ I } ( y_i = c )
+    \]
+    where $ Z = \sum_{ i \in \mathcal{ N }_k ( x ) } \frac{ 1 }{ d ( x , x_i ) } $ is the normalization constant.
+    The prediction is given as 
+    \[
+        \widehat{ y } 
+        = 
+        \frac{ 1 }{ Z }
+        \sum_{ i \in \mathcal{ N }_k ( x ) } \frac{ 1 }{ d ( x , x_i ) } y_i.
+    \]
+\end{defi}
+
+\begin{rmk}
+
+\begin{enumerate} 
+    \item 
+    Usually the features are real vectors $ x_i , x_j \in \mathbb{ R }^D $
+    and common metrics used are
+    \begin{itemize}
+        \item 
+        $ L_2 $ norm: $d_{ L_2 } ( x_i , x_j ) = \sqrt{ \sum_{ d = 1 }^D ( x_{ id } - x_{ jd } )^2 }$,
+
+        \item 
+        $ L_1 $ norm: $d_{ L_1 } ( x_i , x_j ) = \sum_{ d = 1 }^D ( x_{ id } - x_{ jd } )$,
+
+        \item 
+        $ L_\infty $ norm: $d_{ L_\infty } ( x_i , x_j ) = \max_d \lvert x_{ id } - x_{ jd } \rvert$,
+
+        \item 
+        Angle: $ d_{ cos } ( x_i , x_j ) = \cos \alpha = \frac{ x_i^T x_j }{ \lVert x_i \rVert \lVert x_j \rVert }$,
+
+        \item 
+        the Mahalanobis distance, where $ \Sigma $ is a positive semi-definite and symmetric matrix:
+        $ d_\Sigma ( x_i , x_j ) = \sqrt{ ( x_i - x_j )^T \Sigma^{ - 1 } ( x_i - x_j ) } $
+    \end{itemize}
+
+    \item 
+    We want to standardize the data, to circumvent scaling issues, i.e. set
+    \[
+        x_i' 
+        =
+        \frac{ x_i - \mu }{ \sigma }
+    \]
+    where $ \mu $ is the mean and $ \sigma $ is the standard variance.
+
+    \item 
+    The true dimensionality of the data can be much lower than that of the ambient space. 
+    This is called manifold hypothesis.
+\end{enumerate}
+\end{rmk}
+
+\begin{Warning}
+    Keep the curse of dimensionality in mind, that is that with increasing dimensions a dataset of constant size covers exponentially less of the feature space.
+\end{Warning}
+
+\subsection{General idea}
+
+Let $ \mathcal{ D } = \{ ( x_i , y_i ) \}_{ i = 1 }^N $ where the instances have some unknown distribution $ ( x_i , y_i ) \sim p $.
+We want a function $ h ( \cdot ) $ such that $ h ( x ) \approx y $ for a new instance $ x $.
+To do that we give:
+\begin{itemize}
+    \item 
+    Class of functions $ \mathcal{ H } $, that we call classifiers.
+
+    \item 
+    Loss function $ l $ that tells us how good is a given hypothesis $ h \in \mathcal{ H } $.
+\end{itemize}
+
+\begin{defi}
+    The \textbf{average loss} (also called empirical loss) of a classifier $ h $ for a given dataset $\mathcal{ D } = \{ ( x_i , y_i ) \}_{ i = 1 }^N $ is given as 
+    \[
+        \mathcal{ L } ( h , \mathcal{ D } )
+        =
+        \frac{ 1 }{ N } \sum_{ i = 1 }^N l ( y_i , h ( x_i ) ).
+    \]
+    The \textbf{optimal classifier} is given as
+    \[
+        h^* = \arg \min_{ h \in \mathcal{ H } } \mathcal{ L } ( h , \mathcal{ D } ).
+    \]
+\end{defi}
+
+\begin{rmk}
+    Some common loss functions $ l $ for datapoints are:
+    \begin{itemize}
+        \item 
+        Zero-one-loss: $ l ( y , \widehat{ y } ) = \mathbb{ I } ( y \neq \widehat{ y } ) $
+
+        \item 
+        Squared loss: $ l ( y , \widehat{ y } )^2 $
+
+        \item 
+        Absolute loss: $ l ( y , \widehat{ y } ) = \lvert y - \widehat{ y } \rvert $
+    \end{itemize}
+\end{rmk}
+
+\begin{defi}
+    Let $ \mathcal{ D } = \{ ( x_i , y_i ) \}_{ i = 1 }^N $ where the instances have some unknown distribution $ ( x_i , y_i ) \sim p $ and let $ h $ be a classifier as well as $ \mathcal{ L } $ be a loss function.
+    The \textbf{population risk} is defined as 
+    \[
+        \mathcal{ L } ( h ) 
+        =
+        \mathbb{ E }_{ ( x , y ) \sim p }[ l ( y , h ( x ) ) ]
+    \]
+    and the generalization gap is defined
+    \[
+        \mathcal{ L } ( h ) - \mathcal{ L } ( h , \mathcal{ D } ).
+    \]
+\end{defi}
+
+\begin{rmk}
+    Large generalization gap means we are overfitting, i.e. the actual loss on the distribution is very far from the loss on the data.
+    Unfortunately we do in practice not know the distribution of the data.
+    We solve that problem by splitting the data in $ \mathcal{ D }_{train} $ and $ \mathcal{ D }_{test} $. 
+    Learning $ h $ with $ \mathcal{ D }_{train} $ and evaluating with $ \mathcal{D}_{test}$.
+\end{rmk}
+
+\section{trees}
+
+We assume familiarity with binary trees and how a binary decision tree in variables $ x_1 , \dotsc , x_n $ leads to a partition of $ \mathbb{ R }^n $ into regions.
+The following classifier is for finding the region of a new sample $ x $.
+
+\begin{defi}
+\cite[ch. 18.1]{pml1Book}
+    A weighted \textbf{regression tree} is given by 
+    \[
+        f ( x ; \theta ) 
+        = 
+        \sum_{ j = 1 }^J \mathbb{ I } ( x \in R_j )
+    \]
+    where $ R_j $ is specified by the j'th leaf node and $ w_j $ is the predicted output for that node
+    \[
+        w_j 
+        =
+        \frac{ \sum_{ n = 1 }^N y_n \mathbb{ I } ( x_n \in R_j ) }{ \sum_{ n = 1 }^N \mathbb{ I } ( x_n \in R_j )}
+    \]
+    and 
+    \[
+        \theta = \{ ( R_j , w_j ) \colon j = 1 : J \},
+    \]
+    where $ J $ is the number of nodes.
+\end{defi}
+
+\begin{rmk}
+    One can 
+\end{rmk}
+
+
+
+
+\begin{defi}
+    Let $ \pi_c = p ( y = c \mid t ) $ be the class probability at node $ t $.
+    \begin{enumerate}
+        \item 
+        The \textbf{Misclassification rate} is given as 
+        \[
+            i_E ( t ) = 1 - \max_c \pi_c
+        \]
+        
+        \item 
+        The \textbf{Entropy} is given as 
+        \[
+            i_H ( t ) = - \sum_{ c_i \in C } \pi_{ c_i } \log \pi_{ c_i }
+        \]
+
+        \item 
+        The \textbf{Gini index} is given as
+        \[
+            i_G ( t )
+            =
+            \sum_{ c_i \in C } \pi_{ c_i } ( 1 - \pi_{ c_i } ) 
+            =
+            1 - \sum_{ c_i \in C } \pi_{ c_i }^2
+        \]
+    \end{enumerate}
+\end{defi}
+
+\begin{exmp}
+    Let $ X $ be a discrete random variable with codomain $ \{ c_1 , \dotsc , c_n \} $, the entropy is given as:
+    \[
+        \mathbb{ H } ( C ) 
+        =
+        - \sum_{i}^n p ( C = c_i ) \log_2 p ( C = c_i ). 
+    \]
+    This is called the shannon entropy.
+\end{exmp}
+
+\begin{recipe}
+    Let $ \mathcal{ D } $ be a dataset. You want to compute the $ \gamma \% $ confidence interval of the mean, the standard error and the standard deviation.
+    The t-value for a $ \gamma \% $ confidenece interval is given as $ t $.
+
+    \begin{enumerate}
+        \item 
+        Compute the mean 
+        \[
+            \mu 
+            =
+            \frac{ 1 }{ n }
+            \sum_{ i = 1 }^n x_i,
+        \]
+
+        \item 
+        compute the sample standard deviation $ \sigma $ of $ \mathcal{ D } $
+        \[
+            \sigma
+            =
+            \sqrt{ \frac{ \sum_{ i = 1 }^n \lvert x_i - \mu \rvert^2 }{ n - 1 } },
+        \]
+
+        \item 
+        compute the standard error of the mean
+        \[
+            sem 
+            =
+            \frac{ \sigma }{ \sqrt{ n } },
+        \]
+
+        \item 
+        compute the $ \gamma \% $ confidence interval as 
+        \begin{align*}
+            l 
+            &=
+            \mu - t * sem
+            \\
+            u 
+            &=
+            \mu + t * sem
+        \end{align*}
+        the confidence interval is given as $ [ l , u ] $.
+    \end{enumerate}
+\end{recipe}

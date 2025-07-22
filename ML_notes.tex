@@ -1,0 +1,1757 @@
+\documentclass[12 pt]{article}        	%sets the font to 12 pt and says this is an article (as opposed to book or other documents)
+\usepackage{amsfonts, amssymb}	
+\usepackage{Style_Machine_Learning}% packages to get the fonts, symbols used in most math
+\usepackage{listings}
+\usepackage{comment}
+\usepackage{todonotes}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{emoji}
+\usepackage{algpseudocode}
+\bibliography{References}
+
+
+%\usepackage{setspace}               		% Together with \doublespacing below allows for doublespacing of the document
+\oddsidemargin=-0.5cm                 	% These three commands create the margins required for class
+\setlength{\textwidth}{6.5in}         	%
+\addtolength{\voffset}{-20pt}        		%
+\addtolength{\headsep}{25pt}           	%
+
+
+
+
+\pagestyle{myheadings}                           	% tells LaTeX to allow you to enter information in the heading
+\markright{Vincent Siebler\hfill \today \hfill} 	
+
+\begin{document}
+%\begin{comment}
+    
+I need notes for myself to study for ML, so let me go through the script in chronological order and write a short synopsis of each lecture, catching the essential ideas, together with important formulas, definitions and results.
+The overall leisurely style of the notes is a reflection of the lectures style. 
+I have tried before to put more structure into notes for this lecture, but the content withstood my attempts unbothered, so I will go with the
+flow of the lecture.
+It also makes quite some sense, since it is a collection of tools (algorithms), arising from the concept of dynamically adapting the algorithm, to solve particular problems.
+
+\section{Probabilistic inference}
+Maximum likelihood: maximize the likelihood of our observations.
+given that we observed some event $ E $ (or rather some events $ E_i $) our best guess
+at a probability distribution for the whole space is one that maximizes the probability 
+of the observed events happening.
+This is the same as finding 
+\begin{align*}
+    f ( \theta ) &\coloneqq p ( \mathcal{ D } \mid \theta )
+    \\
+    \theta_{ MLE } &= \arg \max_{ \theta \in [ 0 , 1 ] } f ( \theta )
+\end{align*}
+each evaluation at a $ \theta $ is a probability distribution, obtained by imposing certain conditions.
+Our beliefs about theta, i.e. model choices reflecting assumptions about the experiment, 
+are represented by $ p ( \theta ) $.
+We call $ p ( \theta \mid \mathcal{ D } ) $ the \underline{posterior distribution}
+\begin{align*}
+    p ( \theta \mid \mathcal{ D } ) = \frac{ p ( \mathcal{ D } \mid \theta ) \cdot p ( \theta ) }{ p ( \mathcal{ D } ) }
+\end{align*}
+it can be interpreted as updating beliefs about $ \theta $ after observing $ \mathcal{ D } $.
+Using Baye's theorem the posterior can be decomposed into $ p ( \mathcal{ D } \mid \theta ) $ called the \underline{likelihood} , $ p( \theta ) $ called the prior encoding beliefs before we observe any data, $ p ( \mathcal{ D } ) $ called the evidence, it acts as a normalizing constant.
+\[
+    p ( \mathcal{ D } ) = \int p ( \mathcal{ D , \theta } ) d \theta  = p ( \mathcal{ D } \mid \theta ) p( \theta ) d \theta 
+\]
+From above we deduce that maximizing the posterior probability is a good guess at finding the $ \theta $ governing the unknown distribution, thus we define
+\begin{align*}
+    \theta_{ MAP } 
+    &= \arg \max_{ \theta } p ( \theta \mid \mathcal{ D } )
+    \\
+    &=
+    \arg \max_{ \theta } \frac{ p ( \mathcal{ D } \mid \theta ) \cdot p ( \theta ) }{ p ( \mathcal{ D } ) }
+    \\
+    &=
+    \arg \max_{ \theta } p ( \mathcal{ D } \mid \theta ) \cdot p ( \theta ) 
+\end{align*}
+which is called \underline{maximum a posterior (MAP) estimation}.
+To calculate it we observe that the likelihood $ p ( \mathcal{ D } \mid \theta ) $ is known and then the prior $ p ( \theta ) $ is
+chosen to make calculations easier, for example the Beta distribution for some reason.
+
+If a prior is conjugate for a given likelikhood, then the posterior will be of the same family as the prior.
+
+
+The last estimation introduced is estimating the posterior distribution $ p ( \theta \mid \mathcal{ D } ) $, that is not just the theta that maximizises it.
+This can be done by finding the normalizing constant $ p ( \mathcal{ D } ) $ and using Bayes theorem again.
+
+\begin{exmp}
+    Assume we have a coin that shows heads with probability $ \theta $ and tails with probability $ ( 1 - \theta ) $, then we obtain a function $ f ( \theta ) \coloneqq p ( \mathcal{ D } \mid \theta ) $, where $ \mathcal{ D } $ are some observed coin tosses.
+    We obtain 
+    \[
+        \theta_{ MLE } 
+        =
+        \frac{ \lvert T \rvert }{ \lvert T \rvert + \lvert H \rvert },
+    \]
+    where    $ \lvert T \rvert $ is the number of tails and $ \lvert H \rvert $ the number of heads.
+    Now we have
+    \begin{align*}
+        p ( \mathcal{ D } \mid \theta )
+        &=
+        \theta^{ \lvert T \rvert } ( 1 - \theta )^{ \lvert H \rvert }
+        \\
+        p ( \theta )
+        =
+        p ( \theta \mid a , b )
+        &=
+        \frac{ \Gamma ( a  + b ) }{ \Gamma ( a ) \Gamma ( b ) } \theta^{ a- 1 } ( 1 - \theta )^{ b - 1 }
+    \end{align*}
+    put together we obtain
+    \[
+        p( \theta \mid \mathcal{ D } ) 
+        \propto
+        \theta^{ \lvert T \rvert + a - 1 } ( 1 - \theta )^{ \lvert H \rvert + b - 1 },
+    \]
+    and the maximum a posteriori estimate turns out to be
+    \[
+        \theta_{ MAP } 
+        =
+        \frac{ \lvert T \rvert + a - 1 }{ \lvert H \rvert + \lvert T \rvert + a + b - 2 }.
+    \]
+    To obtain the exact result we need to calculate the normalizing constant, which we can do by noticing the similarity between the unnormalized posterior and a Beta distribution and thus obtain
+    \[
+        p ( \theta \mid \mathcal{ D } )
+        =
+        \Beta ( \theta \mid a + \lvert T \rvert, b + \lvert H \rvert ).
+    \]
+\end{exmp}
+
+
+References for this section are 
+\begin{center}
+    \cite{ML_aPP}[ch. 3.1 - 3.3]
+    \\
+    \cite{pml1Book}[ch. 4.2, 4.6]
+    \\
+    \url{https://seeing-theory.brown.edu/#secondPage}
+\end{center}
+
+\section{Evaluation}
+\begin{enumerate}
+    \item 
+    Train on training set.
+
+    \item 
+    Evaluate on validation set.
+\end{enumerate}
+
+So a problem is apparently leakage of data, we train a model on data, but some test data leaks into the training data, thus our model is overfitting to the particular dataset.
+This happens also as a macroscopic process, i.e. we train models on these popular benchmark sets, people publish the results and the results are used down the line on models evaluated on the benchmark set again, overfitting to the benchmark set.
+
+
+We can only ever compare the losses of models with respect to data, never the loss of the model with respect to the true distribution, thus we an only obtain empirical confidence intervals and not true confidence intervals.
+
+\begin{defi}
+    A $ 100 ( 1 - \alpha ) \% $ \underline{confidence interval} for a parameter $ \theta $ is any interval $ I ( \mathcal{ D } ) = ( l ( \mathcal{ D } ) , u ( \mathcal{ D } ) ) $ derived from the dataset $ \mathcal{ D } $ such that 
+    \[
+        p ( \theta \in I ( \mathcal{ D } ) \mid \mathcal{ D } \sim \theta ) 
+        =
+        1 - \alpha. 
+    \]
+\end{defi}
+
+A confidence interval can be interpreted as repeatedly sampling datasets $ \mathcal{ D } $ and computing $ I ( \mathcal{ D } ) $ then $ 100 ( 1 - \alpha ) \% $ of the intervals will contain the true parameter $ \theta $. 
+\section{linear regression}
+
+Let 
+\begin{align*}
+    f_w ( x ) 
+    &=
+    w_0 + w_1 x_1 + \dotsc w_d x_d
+    \\
+    &=
+    w_0 + w^T x
+    \\
+    &=
+    \Tilde{ w }^T \Tilde{ x }
+\end{align*}
+we will omit the Tilde in the future in the last expression with the absorbed bias
+term.
+The \underline{squared loss} is given as 
+\begin{align*}
+    \mathcal{ L } ( w ) &= \frac{ 1 }{ 2 } \sum_{ i = 1 }^N ( x_i^T w - y_i )^2 
+    \\
+    &= 
+    \frac{ 1 }{ 2 } ( X w - y )^T ( X w - y ) 
+\end{align*}
+and the \underline{least square loss} is the corresponding minimum of the above formulas.
+The gradient is given by 
+\begin{align*}
+    \nabla_w \mathcal{ L } ( w ) 
+    =
+    X^T X w - X^T y
+\end{align*}
+we obtain   
+\begin{align*}
+    w^* 
+    &=
+    \arg \min_w \frac{ 1 }{ 2 } ( X w - y )^T ( X w - y ) 
+    \\
+    &=
+    ( X^T X )^{ - 1 } X^T y 
+\end{align*}
+Issues with the implementation can be that $ X^T X $ is ill-conditioned or singular, thus one can compute the pseudo inverse using SVD (signular value decomposition, default in sklearn), QR (if N $>>$ D), iterative solvers such as (GMRES).
+More generally instead of the linear basisfunctions ($x_i$) chosen above, we can choose basis functions $ \phi_j $
+and obtain 
+\begin{align*}
+    f_w ( x ) 
+    &=
+    w_0 + \sum_{ j = 1 }^M w_j \phi_j ( x ) 
+    \\
+    &=
+    w^T \phi ( x ) 
+\end{align*}
+this gives the square loss as 
+\begin{align*}
+    \mathcal{ L } ( w ) 
+    &=
+    \frac{ 1 }{ 2 }
+    ( \phi w - y )^T ( \phi w - y ) 
+\end{align*}
+with
+\begin{align*}
+    \phi 
+    = 
+    \begin{pmatrix}
+        \phi_0 ( x_1 ) 
+        &
+        \phi_1 ( x_1 ) 
+        &
+        \dotsc 
+        &
+        \phi_M ( x_1 ) 
+        \\
+        \phi_0 ( x_2 )
+        &
+        \phi_1 ( x_2 ) 
+        &
+        &
+        \vdots
+        \\
+        \vdots 
+        &
+        \vdots 
+        &
+        \ddots
+        &
+        \vdots
+        \\
+        \phi_0 ( x_N ) 
+        &
+        \phi_1 ( x_N ) 
+        &
+        \dots 
+        &
+        \phi_M ( x_N ) 
+    \end{pmatrix}
+\end{align*}
+which is called the \underline{design matrix} of $ \phi $.
+Analogously to above we obtain 
+\[
+    w^* = ( \phi^T \phi )^{ - 1 } \phi^T y = \phi^{ \dagger } y .
+\]
+We can also add a regularization term to the squared loss and obtain \underline{ridge regression}
+\[
+    \mathcal{ L }_{ \text{ridge} } ( w ) 
+    =
+    \frac{ 1 }{ 2 } \sum_{ i = 1 }^N \big[ w^T \phi ( x_i ) - y_i \big]^2 + \frac{ \lambda }{ 2 } \lVert w \rVert^2_2
+\]
+where $ \lVert w \rVert_2^2 = w^T w $.
+Maximizing the likelihood is equivalent to minimizing the least square loss.
+References for this section are.
+\begin{center}
+    \cite{Pattern_recognition_machine_learning}[ch., 1.1, 3.1 - 3.6]
+    \\
+    \cite{pml1Book}[ch. 7.2, 7.3, 7.5.1, 7.6.1, 7.6.2]
+\end{center}
+
+
+\section{ML-libraries}
+Tools for loading and handling data:
+\begin{itemize}
+    \item 
+    For DataFrames \underline{Panda}, filtering grouping.   
+
+    \item 
+    \underline{numpy}, for numerical operations, e.g. matrix mult., eigenvalue decomp., etc.
+
+    \item 
+    \underline{matplotlib} for visualisation, making subplots, saving plots, functions to draw basic plots
+
+    \item 
+    \underline{seaborn} for statistical data visualization. Pair plots, heatmaps, and so on.
+\end{itemize}
+
+Are your dataframes way too large?
+How to reduce dimensionality you ask?
+Use correlation to determine relation between feature and the target 
+and delete the features that have the lowest correlation with your target.
+This can be done via Pandas, DataFrame.corr() in Python.
+
+A machine learning python library is given by \underline{scikit-learn}.
+Each algorithm is a class inheriting from $\bold{BaseEstimator}.$
+$\bold{BaseEstimator}$ need to be defined:
+\begin{enumerate}
+    \item 
+    a $\bold{fit}$ method that computes parameters of the model given the training data.
+
+    \item 
+    a predict method which makes predictions on the test data.
+\end{enumerate}
+
+The $\bold{fit}$ function computes the minimum and the maximum of the training data.
+The $\bold{transform}$ function scales the given data to range $ [ 0 , 1 ] $
+
+An important step is preprocessing the data, i.e cleaning, normalizing (account for varying scales of different categories), encoding categorical data (Label encoding, one-hot encoding: that is a binary number with only 1 nonzero value, each category is assigned one of those).
+
+Pipelines are useful.
+
+We need/want to find the hyperparameters of our model or best hyperparameters for our model, this is called hyperparameter search.
+$\bold{Estimator}$ has a $\bold{get params}$ method that returns hyperparameters of the model, can be accesed via name, e.g. $\bold{scaler feature range}$. (Demo in script)
+What else
+\begin{itemize}
+    \item 
+    Pytorch: Python library for numerical computing and bulding neural network models
+
+    \item 
+    JAX: NumPy+ autodiff + GPU/TPU speed-up
+
+    \item 
+    Optuna: automatic hyper-param search.
+
+    \item 
+    Weights \& biases: logs models, evaluations for comparison
+\end{itemize}
+
+\section{Linear Classification}
+
+Given a dataset $ \mathcal{ D } = \{ ( x_i , y_i ) \}_{ i = 1 }^N $ the total number of misclassified examples is 
+\[
+    \mathcal{ L } ( f )  = \sum_{ i = 1 }^N l_{ 0 1 } ( y , \hat{ y } ) 
+    =
+    \sum_{ i = 1 }^n \mathbb{ I } ( \hat{ y }_i \neq y_i ) 
+\]
+where $ \hat{ y } = f ( x ) $ is our prediction. 
+Now how can we choose a good $ f ( \cdot ) $?
+
+Assume we have two classes, then we can try to use a hyperplane ($ w^T x + x_0 $) to seperate the datapoints corresponding to the 2 classes,
+we call a data set \underline{linearly seperable} if there exists a hyperplane that seperates the data.
+
+\begin{lem}
+    The \underline{perceptron} algorithm is one of the roots of this field, the prediction is given by 
+    \[
+        \hat{y} = f ( x ) = \mathbb{ I } [ w^T x + x_0 > 0 ]
+    \]
+    where
+    \[
+        H ( a ) = \mathbb{ I }[ a > 0 ] = 
+        \begin{cases}
+            1 & \text{if } a > 0
+            \\
+            0 & \text{otherwise}
+        \end{cases}
+    \]
+    Now the algorithm is given as 
+    \begin{algorithmic}
+        \State $w ,w_0 \gets 0 , 0 $
+            \While{ $ \mathcal{ L } ( f ) > \epsilon $ }
+                \For{ $ i \in \{ 1 , \dotsc , n \} $ }
+                    \If{ $ f ( x_i ) \neq w^T x + w_0 $ } 
+                    \State $w \gets \begin{cases}
+                         w + x_i  & \text{ if } y_i = 1,
+                        \\
+                        w - x_i & \text{ if } y_i = 0.
+                    \end{cases}$
+    
+                    \State $w_0 \gets \begin{cases}
+                        w_0 + 1  & \text{ if } y_i = 1,
+                        \\
+                        w_0 - 1 & \text{ if } y_i = 0.
+                    \end{cases} $
+                    \EndIf
+                \State $ i \gets i + 1 $
+                \EndFor
+            \EndWhile
+    \end{algorithmic}
+    If the data is linearly seperable, we can set $ \epsilon = 0 $ and it converges to an optimum after a finite number of steps.
+\end{lem}
+
+This idea can be extended to multiple classes by associating to each hyperplane a class and obtain that one side of the hyperplane corresponds to the class and the other side corresponds to not the class.
+
+Sometimes it is also very helpful to apply a transformation $ \phi \colon \mathbb{ R }^D \to \mathbb{ R }^M $ that maps the samples to a space where they are linearly seperable, a standard example for that is changing the coordinates from or to spherical ones.
+
+Another approach is trying to model the distribution of the class labels, i.e. a stochastic approach.
+\begin{defi}{Generative model}
+\newline
+    The model consists of 
+    \begin{itemize}
+        \item 
+        class prior - a priori probability of a point belonging to class $ c $,
+
+        \item 
+        class conditional - probability of observing $ x $, given that it belongs to class $ c $.
+    \end{itemize}
+    \[
+        \text{class conditional } p ( x \mid y = c , \psi )
+    \]
+    \[
+        \text{class prior } p ( y = c \mid \theta )
+    \]
+    then use maximum likelihood to obtain $ \psi_{ MLE } , \theta_{ MLE } $.
+    We then obtain as a prediction
+    \[
+        p ( y_{ new } = c \mid x_{ new } , \psi_{ MLE } , \theta_{ MLE } )
+        \propto
+        p ( x_{ new } \mid y_{ new } = c , \psi_{ MLE } ) \cdot p ( y_{ new } = c \mid \theta_{ MLE } )
+    \]
+    where the proportionality comes from the fact that we are omitting a factor $ p ( x_{ new } ) ^ { - 1 } $ after applying Bayes rule to the left side.
+\end{defi}
+
+So how do we choose class prior and class conditional ?
+Take first the class prior $ p ( y = c ) $.
+If $ p ( y = c ) = \theta_c $, then we obtain the MLE as 
+\[
+    \hat{ \theta }_c = \frac{ 1 }{ N } \sum_{ i = 1 }^N \mathbb{ I } ( y_i = c ) .
+\]
+For the class conditionals, given the features $ x \in \mathbb{ R }^D $ are continuous,
+we can use a multivariate normal for each class, i.e.
+\begin{align*}
+    p ( x \mid y = c ) 
+    &=
+    \mathcal{ N } ( x \mid \mu_c , \Sigma ) 
+    =
+    \\
+    \frac{ 1 }{ ( 2 \pi )^{ D / 2 } \lvert \Sigma \rvert^{ 1 / 2 } } 
+    & \exp ( -1/2 ( x - \mu_c )^T \Sigma^{ - 1 } ( x - \mu_c ) ) 
+\end{align*}
+
+How do we do predictions now ?
+If we have two classes $ y \in \{ 0 , 1 \} $ and Gaussian class conditionals,
+we obtain
+\[
+    p ( y = 1 \mid x ) = \sigma ( w^T x + w_0 )
+    = \frac{ 1 }{ 1 + \exp ( - ( w^T x + w_0 ) ) }
+\]
+where the parameters $ w $ and $ w_0 $ can be calculated from the Gaussian distribution.
+In general we obtain
+\[
+    p ( y = c \mid x ) 
+    = 
+    \frac{ \exp ( w_c^T x + w_{ c 0 } ) }{ \sum_{ c' = 1 }^C \exp ( w_{c'}^T x + w_{ c' 0 } ) }
+\]
+with
+\begin{align*}
+    w_c 
+    &=
+    \Sigma^{ - 1 }
+    \\
+    w_{c0} 
+    &=
+    - \frac{ 1 }{ 2 } \mu_c^T \Sigma^{ - 1 } \mu_c + \log p ( y = c ) 
+\end{align*}
+
+We are going to turn the general idea of the function above into a definition, due 
+to the special interest we have in simplices.
+\begin{defi}
+    Softmax $ \sigma $ is a generalization of sigmoid to multiple dimensions 
+    \begin{align*}
+        \sigma \colon \mathbb{ R }^K 
+        &\to
+        \Delta^{ K - 1 }
+        \\
+        x 
+        &\mapsto
+        ( \sigma ( x )_i )_{1 \leq i \leq K }
+    \end{align*}
+    with $ \sigma ( x )_i = \frac{ \exp ( x_i ) }{ \sum_{ k = 1 }^K \exp ( x_k ) } $, 
+    where $ \Delta^{ K - 1 } \subset \mathbb{ R }^K $ is the standard $ K $ simplex.
+\end{defi}
+
+We can of course also do quadratic instead of linear decision boundaries, which gets a whole lot more complicated in the calculations and frankly currently I do not understand them, this happens when we do not assume a shared covariance $ \Sigma $ anymore, i.e. the different classes have different covariance matrices $ \Sigma_0 , \Sigma_1 $.
+
+A \underline{discriminative} model is one, that models $ p ( y \mid x ) $ directly.
+That is $ w , w_0 $ are free parameters.
+
+\begin{defi}
+    Let $ w, w_0 \in \mathbb{R}^d $ be free parameters and $ x \sim Bernoulli ( \sigma ( w^T x + w_0 ) ) $ be the posterior distribution where $ \sigma ( a ) $ is the sigmoid function.
+    This model is called \underline{logistic regression}.
+    The likelihood is given as 
+    \[
+        p ( y \mid X , w ) 
+        &=
+        \prod_{ i = 1 }^N \sigma ( w^T x_i )^{ y_i } ( 1 - \sigma ( w^T x_i ) )^{ 1 - y_i }
+    \]
+    and resultingly the negative log-likelihood (loss) as
+    \[
+        \mathcal{ L } ( w ) 
+        &= 
+        - \log p ( y \mid w , X ) 
+        \\
+        &=
+        - \sum_{ i = 1 }^N ( y_i \log \sigma ( w^T x_i ) + ( 1 - y_i ) \log ( 1 - \sigma ( w^t x_i ) ) ) 
+    \]
+    which is called \underline{binary cross entropy}.
+    Finding the maximum likelihood for $ w $ (the parameter $w^*$ that maximizes the probability of our observed data appearing) is given as
+    \[
+        w^* = \arg \min_w \mathcal{ L } ( w ) 
+    \]
+\end{defi}
+
+Again maximum likelihood estimation can lead to overfitting, we penalize large weights (since large weights make it possible for a single summand (input) to determine the whole model, i.e. overfit w.r.t. that particular input)
+\[
+    \mathcal{ L }_{ reg } ( w ) = - \log p ( y \mid w , X ) + \lambda \lVert w \rVert^q_q
+\]
+Furthermore the negative log likelihood for multiclass logistic regression can be written as
+\begin{align*}
+    \mathcal{ L } ( w ) 
+    &=
+    - \log p ( Y \mid X , w ) 
+    \\
+    &=
+    - \sum_{ i = 1 }^N \sum_{ c = 1 }^C y_{ ic } \log \frac{ \exp ( w_c^T x ) }{ \sum_{ c' } \exp ( w_{c'}^T x ) }
+\end{align*}
+We us a one-hot encoding for the categorical variables $ y \in \mathcal{ C }^N $ and obtain a binary matrix $ Y = ( y_{ ic } )_{ 1 \leq i \leq N , 1 \leq c \leq C }$.
+This is called \underline{cross entropy}.
+
+Discriminative models usually tend to achieve better performance when it comes
+to pure classification tasks.
+While generative models work reasonably well when their
+
+References for this section are
+\begin{center}
+    \cite[ch. 4.1.1, 4.1.2, 4.1.7, 4.2, 4.3.0 - 4.3.4]{Pattern_recognition_machine_learning}
+    \cite[ch.9, 10.1-10.3]{ML_aPP}.
+\end{center}
+
+\section{ensemble bias variance}
+
+\begin{center}
+    expected test error = variance + $ \text{bias}^2 $ + noise
+\end{center}
+
+This can be made precise.
+
+\begin{align*}
+    \mathbb{ E }_{ \mathcal{ D } } [ ( \hat{ \theta }_{ \mathcal{ D } } - \theta^* )^2 ] 
+    &=
+    \mathbb{ E }_{ \mathcal{ D } }[ ( \hat{ \theta }_{ \mathcal{ D } } + \overline{ \theta } - \overline{ \theta } - \theta^* )^2 ]
+    \\
+    &=
+    \mathbb{ E }_{ \mathcal{ D } } [ ( \hat{ \theta }_{ \mathcal{ D } } - \overline{ \theta } )^2 ] + ( \overline{ \theta } - \theta^* )^2 
+\end{align*}
+
+where $ \theta^* $ is the value to be estimated, $ \hat{ \theta }_{ \mathcal{ D } } $ is the estimate we obtain from the data set $ \mathcal{ D } $ and $ \overline{ \theta } $ the estimate obtained from different datasets $ \mathcal{ D } $.
+\begin{defi}
+    Let $ \mathcal{ D } = \{ ( x_1 , y_1 ) , \dotsc , ( x_N , y_N ) \} $ with $ ( x_i , y_i ) \sim p ( x , y ) $ and $ y_i \in \mathbb{ R } $ be a dataset.
+    The \underline{expected test error} given a model $ h_{ \mathcal{ D } }$ is given by
+    \[
+        \mathbb{ E }_{ ( x , y ) \sim p } [ ( h_{ \mathcal{ D } } ( x ) - y )^2   ]
+    \]
+    If we denote $ \mathcal{ D } \sim p^N $ for $ N $ samples the \underline{expected classifier} $ \overline{h} ( x ) $ is given as 
+    \[
+        \overline{ h } ( x ) = \mathbb{ E }_{ \mathcal{ D } \sim p^N } [ h_{ \mathcal{ D } } ( x ) ].
+    \]
+\end{defi}
+
+Let now $ \overline{ y } ( x ) = \mathbb{ E }_{ y \mid x } [ y ] $ be the expected label, we obtain putting everything together
+
+\[
+    \underbrace{ \mathbb{ E }_{ x , y , \mathcal{ D } } [ ( h_{ \mathcal{ D } } ( x ) - y )^2 ] }_{ \text{ expected test error } } 
+    =
+    \underbrace{ \mathbb{ E }_{ x , \mathcal{ D } } [ ( h_{ \mathcal{ D } } ( x ) - \overline{ h } ( x ) )^2 ] }_{ \text{ variance } } 
+    + 
+    \underbrace{ \mathbb{ E }_{ x } [ ( \overline{ h } ( x ) - \overline{ y } ( x )  )^2 ] }_{ \text{ bias}^2 } 
+    +
+    \underbrace{ \mathbb{ E }_{ x , y } [ ( \overline{ y } ( x ) - y )^2 ] }_{ \text{ noise } } 
+\]
+where the \underline{variance} tells us how much the classifier changes if we train on different data.
+The \underline{bias} is the inherent error of the classifier even with infinite training data.
+The \underline{Noise} is data-intrinsic error.
+
+\begin{rmk} 
+    We generally have a bias, variance tradeoff.
+    That is high bias, low variance leads to underfitting and low bias, high variance 
+    to overfitting.
+\end{rmk}
+
+We can lower the variance by aggregating several models, that is taking the average of multiple models
+\[
+    f ( x ) = \frac{ 1 }{ \lvert \mathcal{ M } \rvert } \sum_{ m \in \mathcal{ M } } f_m ( x ) 
+\]
+
+There are three major examples of ensemble learning:
+\begin{enumerate}
+    \item 
+    Stacking: 
+    Train a meta-classifier with the base classifiers predictions as features.
+
+    \item 
+    Bagging: 
+    Create new datasets by sampling training set, train separate classifiers on each dataset, combine the predictions, e.g. average or majority vote.
+
+    \item 
+    Boosting:
+    Incrementally train weak classifiers that correct previous mistakes, focus (give higher weight) on hard (misclassified) examples.
+\end{enumerate}
+
+\begin{algo}
+    
+\begin{algorithm}
+    \State $ f_0 ( x ) \gets \arg \min_h \sum_{ i = 1 }^N l ( h ( x_i ) , y_i ) $
+        \For{ $ m \in \{ 1 , \dotsc , M \} $ }
+            \State $ r_{ i m } \gets - \bigg[ \frac{ \partial l ( f ( x_i ) , y_i ) }{ \partial f ( x_i ) } \bigg]$                     \State $ f_m  \gets \arg \min_h \sum_{ i = 1 }^N ( r_{ i m } - h ( x ) )^2$
+            \State $ f_m ( x ) = f_{ m - 1 } ( x ) + \beta f_m ( x ) $
+        \EndFor
+    \State \Return {} $ f ( x ) = f_M ( x ) $
+\end{algorithm}
+\end{algo}
+
+For regression we obtain 
+\begin{align*}
+    r_{ i m } 
+    &=
+    - \bigg[ \frac{ \partial l ( f ( x_i ) , y_i ) }{ \partial f ( x_i ) } \bigg]_{ f ( x_i ) = f_{ m - 1 } ( x_1 ) }
+    \\
+    &=
+    y_i - f_{ m - 1 } ( x_i ) 
+\end{align*}
+
+\begin{algo}    
+This algorithm is called \underline{Ada boost}, it is used primarily for binary classification tasks.
+
+\begin{algorithm}
+\State $ \omega_i \gets \frac{ 1 }{ N } , \forall i \in \{ 1 , \dotsc , N \} $
+    \For{ $ m \in \{ 1 , \dotsc , M \} $ }
+        \State $ \text{train } f_m \text{ with weights } \omega_i $
+        \State $ \epsilon_m \gets \frac{ \sum_{ i = 1 }^N \omega_i \mathbb{ I } ( f_m ( x_i ) \neq y_i ) }{ \sum_{ i =1 }^N \omega_i }$
+        \State $ \alpha_m \gets \log \big( \frac{ 1 - \epsilon_m }{ \epsilon_m } \big) $
+        \State $ w_i \gets w_i * \exp ( \alpha_m \mathbb{ I } ( f_m ( x_i ) \neq y_i ) ) , \forall i \in \{ 1 , \dotsc , N \}$
+    \EndFor
+\State \Return{} $ f ( x ) = \sign \big[ \sum_{ m = 1 }^M \alpha_m f_m ( x ) \big] $ 
+\end{algorithm}
+
+\end{algo}
+
+\begin{rmk}
+    Boosting reduces the bias of weak learners, bagging reduces the variance.    
+\end{rmk}
+
+References for this section are 
+\begin{center}
+    \cite[ch. 4.7.6, 5.2.3, 18]{pml1Book}
+    \url{https://mateusmaia.shinyapps.io/adaboosting/}
+\end{center}
+
+\section{Unconstrained Optimization}
+
+The problem we are dealing with in this chapter is that we want to minimize our loss, i.e. find the minimum of a function, that has possibly local minima that are not global minima.
+
+\begin{defi}
+    Let $ \mathcal{ X } \subset \mathbb{ R }^d $ be a convex set.
+    A function $ f \colon \mathcal{ X } \to \mathbb{ R } $ is called convex, iff for all $ x , y \in \mathcal{ X } \colon f ( \lambda x + ( 1 - \lambda ) y ) \leq \lambda f ( x ) + ( 1 - \lambda ) f ( y ) $ for $ \lambda \in [ 0 , 1 ] $.
+\end{defi}
+
+\begin{thm}
+    Suppose $ f \colon \mathcal{ X } \to \mathbb{ R } $ is a differentiable function and $ \mathcal{ X } $ is convex. 
+    Then $ f $ is convex iff for $ x , y \in \mathcal{ X } $
+    \[
+        f ( y ) \geq f ( x ) + \nabla f ( x )^T ( y - x ).
+    \]
+\end{thm}
+
+\begin{lem}
+    If $ f $ is twice differentiable, then $ f $ is convex iff its domain is convex and its Hessian is positive semidefinite, i.e. for all $ x  \colon ( \nabla^2 f ( x ) )_i \geq 0 $.
+\end{lem}
+
+\begin{prop}
+    Let $ f_1 , f_2 \colon \mathbb{ R }^d \to \mathbb{ R } $ be convex functions, and $ g \colon \mathbb{ R }^d \to \mathbb{ R } $ be a concave function, then the following hold:
+    \begin{itemize}
+        \item 
+        $ h ( x ) = f_1 ( x ) + f_2 ( x ) $ is convex 
+
+        \item 
+        $ h ( x ) = \max \{ f_1 ( x ) , f_2 ( x ) \} $ is convex
+
+        \item 
+        $ h ( x ) = c \cdot f_1 ( x ) $ is convex if $ c \geq 0 $
+
+        \item 
+        $ h ( x ) = c g ( x ) $ if $ c \leq 0 $
+
+        \item 
+        $ h ( x ) = f_1 ( A x + b ) $ is convex
+
+        \item 
+        $ h ( x ) = m ( f_1 ( x ) ) $ is convex if $ m \colon \mathbb{ R } \to \mathbb{ R } $ is convex and nondecreasing. 
+    \end{itemize}
+\end{prop}
+
+\subsection{Gradient descent}
+
+Observe that 
+\[
+    \mathcal{ L } ( \theta - \eta \nabla \mathcal{ L } ( \theta_t ) ) < \mathcal{ L }( \theta ) 
+\]
+which means the negative gradient is a descent direction.
+So we can optimize stepwise by setting
+\[
+    \theta_{ t + 1 } \leftarrow \theta_t - \eta \cdot \nabla \mathcal{ L } ( \theta_t )
+\]
+Problem: a bad choice of $ \eta $ leads to the process not converging.
+More precisely
+\begin{algo}
+    Gradient descent with line search, let $ \epsilon $ be some small real number and $ \Dom ( \mathcal{ L } ) $ the domain of $ \mathcal{ L } $.
+    \begin{algorithm}
+        \State $ \theta \gets $ pick.Random($\Dom ( \mathcal{ L } ) $ ) 
+        \State $ \epsilon \gets \epsilon $
+            \While{ $ \mathcal{ L } ( \theta ) > \epsilon $ } 
+                \State $ \Delta \theta \gets - \nabla \mathcal{ L } ( \theta ) $
+                \State $ t^* \gets \arg \min_{ t> 0 } \mathcal{ L } ( \theta + t \Delta \theta ) $ 
+                \State $ \theta \gets \theta + t^* \Delta \theta $ 
+            \EndWhile
+        \State \Return{ }$ \theta $ 
+    \end{algorithm}
+\end{algo}
+Solution choose $ \eta_t $ to be a function of the iteration, first large changes, then fine-tuning.
+
+\begin{defi}
+    The adaptive moment estimation (short: Adam) update rule is given by
+    \[
+        \theta_{ t + 1 } = \theta_t - \eta \cdot \frac{ \hat{ m }_t }{ \sqrt{ \hat{ v }_t } + \epsilon }
+    \]
+    where 
+    \begin{itemize}
+        \item 
+        $ m_t = \beta_1 m_{ t - 1 } + ( 1 - \beta_1 ) \nabla \mathcal{ L } ( \theta_t ) $
+
+        \item 
+        $ v_t = \beta_2 v_{ t - 1 } + ( 1 - \beta_2 ) ( \nabla \mathcal{ L } ( \theta_t ) )^2 $
+
+        \item 
+        $ \hat{ m_t } = \frac{ m_t }{ 1 - \beta_1^t } , \hat{ v }_t = \frac{ v_t }{ 1 - \beta_2^t }$
+    \end{itemize}
+\end{defi}
+
+\begin{rmk}
+    Nothing stops us from considering information from higher derivatives, as opposed to Gradient descent (first-order optimization).
+    For example the \underline{Newton method}, which has the update rule
+    \[
+        \theta_{ t + 1 } \leftarrow \theta_t - [ \nabla^2 f ( \theta_t ) ]^{ - 1 } \nabla f ( \theta_t ) 
+    \]
+    which we can mostly use for low dimensional problems, since it has $ O ( d^3 ) $ runtime, but it has nice convergence properties.
+\end{rmk}
+
+Problem:
+For real world statistical data, even first order methods are too costly.
+Solution:
+Stochastic optimization
+
+We can approximate the expectation by a smaller amount of samples:
+\[
+    \mathcal{ L } ( \theta ) 
+    =
+    \sum_{ i = 1 }^n l_i ( \theta ) 
+    \approx 
+    \frac{ n }{ \lvert S \rvert } \sum_{ j \in S } l_j ( \theta )
+\]
+
+\begin{algo}
+    This algorithm is called \underline{stochastic gradient descent},
+    let $ \mathcal{ D } $ be the dataset
+
+    \begin{algorithmic}
+        \State {$ \theta_0 \gets $ 1 } 
+            \For{ $ t \in \{ 1 , \dotsc , N \} $ }
+                \While{ $ \theta_t > \epsilon $}
+                    \State $ S \gets pick.random ( n , \mathcal{ D } ) $
+                    \For{$ j \in \{1 , \dotsc , n \} $}
+                        \State{$ c_j \gets \nabla l_j ( \theta_t ) $}
+                    \EndFor
+                    \State{$&\theta_{ t + 1 } \gets \theta_t - \eta \cdot \frac{ \lvert \mathcal{ D } \rvert }{ \lvert S \rvert } \sum_{ j \in S } c_i$}
+                \EndWhile
+            \EndFor
+        \State \Return{ $ \theta_N $ }
+    \end{algorithmic}
+\end{algo}
+
+References for this section are given in
+\begin{center}
+    \cite[ch.8.1-8.4]{pml1Book}, \cite[ch.6]{prince2023understanding}
+\end{center}
+
+\section{Constrained Optimization}
+
+Constrained optimization deals with an optimization task, i.e. minimizing some function, subject to additional constraints.
+
+\begin{defi}
+    A multidimensional constrained optimization problem is given as follows.
+    Given $ f_0 \colon \mathbb{ R }^d \to \mathbb{ R } $ and $ f_i \colon \mathbb{ R }^d \to \mathbb{ R } $,
+    \begin{align*}
+        &\text{minimize}_{\theta} \quad f_0 ( \theta )
+        \\
+        &\text{subject to} \quad f_i ( \theta ) \leq 0 \text{ for } i =  1 , \dotsc , M 
+    \end{align*}
+\end{defi}
+%\end{comment}
+
+\begin{exmp}
+    An example that often appears, is fitting a model, such that the weights are non-negative:
+    \begin{align*}
+        &\text{minimize}_w \quad \mathcal{ L }_{ LS } ( w ) = \frac{ 1 }{ 2 } \sum_{ i = 1 }^N ( w^T x_i - y_i )^2
+        \\
+        &\text{subject to} \quad w_i \geq 0 , i \in \{ 1 , \dotsc , d \}
+    \end{align*}
+\end{exmp}
+
+\begin{exmp}
+    Linear Programming
+    \begin{align*}
+        &\text{minimize }  c^T \theta 
+        \\
+        &\text{subject to }  A \theta - b \leq 0 
+    \end{align*}
+Geometrically this corresponds to finding the minimum value along some direction inside some convex polytope.
+The \underline{simplex algorithm} solves LPs, by moving from vertex to vertex along the edges.
+\end{exmp}
+
+\begin{exmp}
+    Quadratic Programming
+    \begin{itemize}
+        \item 
+        minimize $ \frac{1}{2} \theta^T Q \theta + c^T \theta $
+
+        \item 
+        subject to $ A \theta - b \leq  0 $
+    \end{itemize}
+\end{exmp}
+
+Can we adapt gradient descent to constrained Optimization?
+Problem: A gradient descent step, $ \theta^{ t + 1 } $ might be outside of the region $  \mathcal{ X } $.
+Solution: Project a new point back to the closest point in the convex set $ \mathcal{ X } $ 
+\[
+    \theta^{ t + 1 } \leftarrow \pi_{ \mathcal{ X } } ( \theta^t - \tau \nabla f ( \theta^t ) ) 
+\]
+where $ \pi_{ \mathcal{ X } } ( p ) = \arg \min_{ \theta \in \mathcal{ X } } \lVert \theta - p \rVert_2^2 $ is the projection.
+
+New Problem: Projection itself is a convex optimization problem, costly in praxis.
+Solution: Standard cases can be solved quickly.
+
+\begin{exmp}
+    \begin{itemize}
+        \item 
+        Projection onto box $ \mathcal{ X } = \{ \theta \in \mathbb{ R }^d \colon l_i \leq \theta_i \leq u_i \text{ for all } i = 1 , \dotsc , d  \} $
+        \[
+            ( \pi_{ \mathcal{ X } } ( p ) )_i = \min ( \max ( l_i , p_i ) , u_i ) 
+        \]
+
+        \item 
+        Projection onto $ L_2 $-ball $ \mathcal{ X } = \{ \theta \in \mathbb{ R }^d \colon \lVert \theta \rVert_2 \leq c \} $
+        \[
+            \pi_{ \mathcal{ X } } ( p ) = 
+            \begin{cases}
+                p & \text{ if  } \lVert p \rVert_2 \leq c
+                \\
+                \frac{ c }{ \lVert p \rVert_2 }p & \text{otherwise}
+            \end{cases}
+        \]
+
+        \item 
+        Projection onto $ L_1 $-ball can be done with a linear time algorithm.
+        
+    \end{itemize}
+\end{exmp}
+
+\begin{exmp}
+    Single inequality constraint
+    \begin{itemize}
+        \item 
+        minimize$_{ \theta } $ $ - ( \theta_1 + \theta_2 ) = f_0 ( \theta ) $
+        such that 
+        $ f_1 ( \theta ) =  \theta_1^2 + \theta_2^2 -1 \leq 0 $
+        \item 
+        let $ \theta^* $ be the minimzer then
+        \[ - \nabla f_0 ( \theta   ^* ) = \alpha \nabla f_1 ( \theta^* ) \]
+        with $ \alpha \geq 0 $.
+    \end{itemize}
+
+    In the multidimensional case it holds for the minimizer that 
+    \begin{equation}
+    \label{eq:optimality_criterion}    
+        - \nabla f_0 ( \theta^* ) 
+        = 
+        \sum_{ i = 1 }^M \alpha_i \nabla f_i ( \theta^* ) , \alpha_i \geq 0 
+    \end{equation}
+    
+\end{exmp}
+
+\begin{defi}
+    Given $ f_0 \colon \mathbb{ R }^d \to \mathbb{ R } $ and $ f_i \colon \mathbb{ R }^d \to \mathbb{ R } $,
+    \begin{align*}
+        &\text{minimize}_{\theta} \quad f_0 ( \theta )
+        \\
+        &\text{subject to} \quad f_i ( \theta ) \leq 0 \text{ for } i =  1 , \dotsc , M 
+    \end{align*}
+
+    we define the \underline{Lagrangian} $ L \colon \mathbb{ R }^d \times \mathbb{ R }^M \to \mathbb{ R } $ associated to the above minimization task 
+    \[
+        L ( \theta , \alpha ) 
+        = 
+        f_0 ( \theta ) 
+        + 
+        \sum_{ i = 1 }^M \alpha_i f_i ( \theta ) 
+    \]
+    where $ \alpha_i \geq 0 $ is the Lagrange multiplier associated with the constraint $ f_i ( \theta ) \leq 0 $.
+\end{defi}
+
+\begin{rmk}
+    Setting $\nabla_{ \theta^* } L ( \theta^* , \alpha ) = 0 $ recovers \eqref{eq:optimality_criterion} for $ \theta^*$.
+\end{rmk}
+
+\begin{defi}
+    We define 
+    \begin{equation*}
+        g ( \alpha ) 
+        = 
+        \min_{ \theta \in \mathbb{ R }^d } L ( \theta , \alpha ) 
+        =
+        \min_{ \theta \in \mathbb{ R }^d } \bigg( f_0 ( \theta ) + \sum_{ i = 1 }^M \alpha_i f_i ( \theta ) \bigg) 
+    \end{equation*}
+    it is called the \underline{Lagrange dual}, it is concave.
+\end{defi}
+
+For each fixed choice of $ \alpha \geq ß $ the Lagrange dual $ g ( \alpha ) $ gives a a lower bound on the optimal value $ p^* $.
+
+\begin{defi}
+    The Lagrange dual problem is given as 
+    \begin{align*}
+        &d^* 
+        = 
+        \max_{ \alpha } g ( \alpha ) 
+        \\
+        &\text{subject to } \alpha_i \geq 0 , i = 1 , \dotsc , m 
+    \end{align*}
+    
+\end{defi}
+
+It always holds that $ g ( \alpha ) \leq p^* $ thus 
+\[
+    d^* \leq p^*.
+\]
+The difference $ p^* - d^* $ is called duality gap, we say that we have strong duality when $ p^* = d^* $.
+
+\begin{lem}
+    Let $ \theta^* $ be a minimizer of the primal problem and $ \alpha^* $ maximizer of the dual problem.
+    Assume strong duality holds and $ L ( \theta , \alpha ) $ is convex in $ \theta $, then 
+    \[
+        \theta^* 
+        = 
+        \arg \min_{ \theta } L ( \theta , \alpha^* ). 
+    \]
+\end{lem}
+
+\begin{prop}
+    \label{recipe_constrained_optimization}
+    Recipe for constrained optimization
+    \begin{enumerate}
+        \item 
+        Formulate the Lagrangian $ L ( \theta , \alpha ) = f_0 ( \theta ) + \sum_{ i = 1 }^M \alpha_i f_i ( \theta ) $.
+
+        \item
+        For each $\alpha \geq 0 $ obtain the dual function $ g ( \alpha ) $ by solving $ g ( \alpha ) = \min_{ \theta } L ( \theta , \alpha ) $
+        \begin{enumerate}
+            \item 
+            Figure out for which $ \alpha $ the objective is unbounded 
+
+            \item 
+            For other compute $ g ( \alpha ) $, e.g. solve $ \nabla_\theta L ( \theta , \alpha ) = 0 $ to get $ \theta^* ( \alpha ) $, then 
+            $ g ( \alpha ) = L ( \theta^* ( \alpha ) , \alpha ) $
+        \end{enumerate}
+
+        \item 
+        Solve dual problem,
+        \[
+            \text{maximize}_\alpha g ( \alpha ) 
+            \quad 
+            s.t.
+            \quad 
+            \alpha_i \geq 0 \text{ for } i = 1 , \dotsc , M 
+        \]
+    \end{enumerate}
+    given Slater's condition is satisfied, that is there exists some solution $ x^* $ that satisfies strict bounds, i.e. $ f_i ( x^* ) < 0 $.
+\end{prop}
+
+
+\begin{lem}
+    Assume we have constrained optimization problem where all functions are convex.
+    Then $ \theta^* $ and $ \alpha^* $ are optimal solutions if and only if they satisfy the Karush-Kuhn-Tucker (KKT) conditions for $ i = 1 , \dotsc , M $:
+    \begin{align*}
+        &f_i ( \theta^* ) \leq 0 \qquad \text{ primal feasibility }.
+        \\
+        &\alpha_i^* \geq 0 \qquad \text{ dual feasibility },
+        \\
+        & \alpha_i^* f_i ( \theta^* ) = 0 \qquad \text{ complementary slackness, }
+        \\
+        & \nabla_{ \theta } L ( \theta^* , \alpha^* ) = 0 \qquad \theta^* \text{ minimizes Lagrangian.}
+    \end{align*}
+\end{lem}
+
+References for this section are given in 
+\begin{center}
+    \cite[ch.8.5.1-8.5.5,8.6.1]{pml1Book}
+\end{center}
+
+\section{Support Vector Machines and Kernels}
+
+The objective now is to find a hyperplane that separates data-points with maximum margin.
+
+\begin{defi}
+    Let $ w^T x + b = 0 $ be a hyperplane in a dataset, and let 
+    \[
+        w^T x + ( b - s ) > 0 
+    \]
+    for all points $ x $ from the class above the original hyperplane, as well as
+    \[
+        w^T x + ( b + s ) < 0 
+    \]
+    for all points $ x $ from the class below the original hyperplane, be 2 additional hyperplanes.
+    We obtain a margin between the two hyperplanes 
+    \[
+        m = \frac{ 2 s }{ \lVert w \rVert}
+    \]
+    w.l.o.g we can set $ s = 1 $ and obtain
+    \[
+        m = \frac{ 2 }{ \lVert w \rVert }.
+    \]
+\end{defi}
+
+The above problem can be restated as the following constrained convex optimization problem.
+
+\begin{defi}
+\label{separating_hyperplane_convex_optimization}
+    To find the maximum margin separating hyperplane,
+    find $ \{ w , b \} $ such that
+    \begin{align*}
+        &\text{ minimize } f_0 ( w , b ) = \frac{ 1 }{ 2 } w^T w,
+        \\
+        &\text{ subject to } f_i ( w , b ) = y_i ( w^T x_i + b ) - 1 \geq 0 , \quad 
+        i \in \{ 1 , \dotsc , N \}.
+    \end{align*}
+\end{defi}
+
+\begin{exmp}
+    Let us apply \cref{recipe_constrained_optimization} to finding the maximum margin hyperplane
+    \begin{enumerate}
+        \item 
+        Formulate the Lagrangian 
+        \[
+            L ( w , b , \alpha ) 
+            = 
+            \frac{ 1 }{ 2 }
+            w^T w
+            -
+            \sum_{ i = 1 }^N \alpha_i [ y_i ( w^T x_i + b ) - 1 ]
+        \]
+
+        \item 
+        Minimize $ L ( w , b , \alpha ) $ with respect to $ w $ and $ b $.
+        \begin{align*}
+            \nabla_w L ( w , b , \alpha ) 
+            &=
+            w - \sum_{ i = 1 }^N \alpha_i y_i x_i 
+            \\
+            \frac{ \partial L }{ \partial b }
+            &=
+            - \sum_{ i = 1 }^N \alpha_i y_i 
+        \end{align*}
+    \end{enumerate}
+
+    Thus the weights are a linear combination of the training samples,
+    \[
+        w = \sum_{ i = 1 }^N \alpha_i y_i x_i
+    \]
+    Substitute both expressions into $ L ( w , b , \alpha ) $.
+    Obtain the dual.
+    \begin{align*}
+        \text{maximize} \quad &g ( \alpha ) = \sum_{ i = 1 }^N \alpha_i 
+        - 
+        \frac{ 1 }{ 2 } \sum_{ i = 1 }^N \sum_{ j = 1 }^N y_i y_j \alpha_i \alpha_j x_i^T x_j 
+        \\
+        \text{subject to} \quad &\sum_{ i = 1}^N \alpha_i y_i = 0 
+        \\
+        &\alpha_i \geq 0 , \quad \text{ for all } i \in \{ 1 , \dotsc , N \}
+    \end{align*}
+
+    \item 
+    Solve this problem instead, notice that 
+    \[
+        g ( \alpha ) 
+        =
+        \frac{ 1 }{ 2 } \alpha^T Q \alpha + \alpha^T 1_N
+    \]
+    where $ Q $ is a symmetric negative (semi-)definite matrix, and the constraints on $\alpha $ are linear.
+
+    \item 
+    Obtain the original parameters as 
+    \[
+        w = \sum_{ i = 1 }^N \alpha_i^* y_i x_i
+    \]
+    as well as
+    \[
+        b = y_i - w^T x_i.
+    \]
+\end{exmp}
+
+\subsection{Soft margin SVM}
+    
+Problem: As soon as one data point violates the margins, we do not get a solution.
+Solution: We relax the constraint, but punish the relaxation of a constraint.
+
+The relaxed conditions are given as 
+\[
+    y_i ( w^T x_i + b ) \geq 1 - \xi_i, \quad y_i \in \{ -1 , 1 \}, \forall i
+\]
+the new loss is 
+\[
+    f_0 ( w , b , \xi ) 
+    =
+    \frac{ 1 }{ 2 } w^T w + C \sum_{ i = 1 }^N \xi_i .
+\]
+
+\begin{defi}
+    \label{optimization_problem_with_slack_variables}
+
+    To find hyperplane that separates most of the data with maximum margin we solve
+    
+    \begin{align*}
+        \text{ minimize } \quad &f_0 ( w , b , \xi ) 
+        = \frac{1}{2} w^Tw + C \sum_{ i = 1 }^N \xi_i,
+        \\
+        \text{subject to} \quad &y_i ( w^T x_i + b ) - 1 + \xi_i \geq 0, \quad i \in \{ 1, \dotsc , N \}
+        \\
+        & \xi_i \geq 0.
+    \end{align*}
+\end{defi}
+
+\begin{lem}
+    The problem of \cref{optimization_problem_with_slack_variables} yields the following dual problem
+    \begin{align*}
+        \text{maximize} \quad &g ( \alpha ) = \sum_{ i = 1 }^N \alpha_i 
+        - 
+        \frac{ 1 }{ 2 } \sum_{ i = 1 }^N \sum_{ j = 1 }^N y_i y_j \alpha_i \alpha_j x_i^T x_j,
+        \\
+        \text{subject to} \quad &\sum_{ i = 1 }^N \alpha_i y_i = 0 
+        \\
+        &0 \leq \alpha_i \leq C \quad \{ i = 1 , \dotsc , N \}.
+    \end{align*}
+
+    The optimal solution for the slack variables is 
+    \[
+        \xi_i = 
+        \begin{cases}
+            1 - y_i ( w^T x_i + b ), & \text{if } y_i ( w^T x_i + b ) < 1 
+            \\
+            0 & \text{else}
+        \end{cases}
+    \]
+    This means we can write this as the following unconstrained optimization
+    \[
+        \min_{ w , b } \frac{ 1 }{ 2 } w^T w + C \sum_{ i = 1 }^N 
+        \max \{ 0 , 1 - y_i ( w^T x_i + b ) \}
+    \]
+    this is called the \underline{hinge loss} formulation, the corresponding hinge loss function $ \mathcal{ L }_{ hinge } ( z ) = \max \{ 0 , 1 - z \} $ penalizes the points that lie in the margin.
+\end{lem}
+
+\subsection{kernels}
+
+\begin{defi}
+    We call a function $ k \colon \mathbb{ R }^D \times \mathbb{ R }^D \to \mathbb{ R } $
+    \[
+        k ( x_i , x_j ) \coloneqq \phi ( x_i )^T \phi ( x_j ) 
+    \]
+    a \underline{kernel} function and rewriting the dual 
+    \[
+        g ( \alpha ) = \sum_{ i = 1 }^N \alpha_i - \frac{ 1 }{ 2 } \sum_{ i = 1 }^N \sum_{ j = 1 }^N y_i y_j \alpha_i \alpha_j k  ( x_i , x_j ) 
+    \]
+    is called the kernel trick.
+\end{defi}
+
+\begin{thm}
+    A kernel is valid if it gives rise to a symmetric, positive semidefinite kernel matrix (Gram matrix) $ K \in \mathbb{ R }^{ N \times N } $
+    \[
+        K = 
+        \begin{pmatrix}
+            k ( x_1 , x_1 ) & k ( x_1, x_2 ) & \dotsc & k ( x_1 , x_N ) 
+            \\
+            k ( x_2 , x_1 ) & k (x_2 , x_2 ) & \dotsc & k ( x_2 , x_N ) 
+            \\
+            \vdots & \vdots & \ddots & \vdots 
+            \\
+            k ( x_N , x_1 ) & k ( x_N , x_2 ) & \dotsc & k ( x_N , x_N ) 
+        \end{pmatrix}   
+    \]
+\end{thm}
+
+\begin{lem}
+    Let $ k_1 \colon \mathcal{ X } \times \mathcal{ X } \to \mathbb{ R } $ and $ k_2 \colon \mathcal{ X } \times \mathcal{ X } \to \mathbb{ R }$ be kernels, with $ \mathcal{ X } \subseteq \mathbb{ R }^N $. 
+    Then the following functions are kernels as well:
+    \begin{itemize}
+        \item 
+        $ k ( x_1 , x_2 ) = k_1 ( x_1 , x_2 ) + k_2 ( x_1 , x_2 ) $,
+
+        \item 
+        $k ( x_1 , x_2 ) = c \cdot k_1 ( x_1 , x_2 ) $ with $ c > 0 $,
+
+        \item 
+        $ k ( x_1 , x_2 ) = k_1 ( x_1 , x_2 ) \cdot k_2 ( x_1 , x_2 ) $,
+
+        \item 
+        $ k (x_1 , x_2 ) = k_3 ( \phi ( x_1 ) , \phi ( x_2 ) ) $, with the kernel $ k_3 $ on $ \mathcal{ X }' \subseteq \mathbb{ R }^M $ and $ \phi \colon \mathcal{ X } \to \mathcal{ X }'$,
+
+        \item 
+        $ k ( x_1 , x_2 ) = x_1^T A x_2 $ with $ A \in \mathbb{ R }^{ N \times N } $ symmetric and positive semidefinite.
+    \end{itemize}
+\end{lem}
+
+\begin{exmp}
+    \begin{itemize}
+        \item 
+        $ k ( a , b ) = ( a^T b )^p $ or $ k ( a , b ) = ( 1 + a^T b )^p $
+
+        \item 
+        $ k ( a , b ) = \exp \bigg( - \frac{ \lVert a - b \rVert^2 }{ 2 \sigma^2 } \bigg) $ or $ k ( a , b ) = \exp ( - \gamma \lVert a - b \rVert^2 ) $
+
+        \item 
+        Sigmoid: $ k ( a , b ) = \tanh ( \kappa a^T b - \delta ) $ for $ \kappa, \delta > 0 $.
+    \end{itemize}
+\end{exmp}
+
+\begin{lem}
+    We can define a classifier called \underline{kernelized SVM}.
+    Let $ \mathcal{ S } $ be the set of support vectors: point $ x_i $ such that $ 0 < \alpha_i \leq C $. A new point $ x $ can be classified as 
+    \[
+        h ( x )
+        =
+        \sign \bigg( \sum_{ \{ j \mid x_j \in \mathcal{ S } \} } \alpha_j y_j k ( x_j , x ) + b \bigg)
+    \] 
+\end{lem}
+
+Note that a standard SVM cannot handle multiclass data.
+Two approaches:
+\begin{itemize}
+    \item 
+    One-vs-rest:
+    Train C SVM models for C classes, where each SVM is being trained
+    for classification of one class against all the remaining ones. The winner is then
+    the class, where the distance from the hyperplane is maximal.
+
+    \item 
+    One-vs-one: Train $ \binom{ C }{ 2 }$ classifiers (all possible pairings) and evaluate all of them.
+    The winner is the class with the weighted majority vote, weighted according to the
+    distance from the margin.
+\end{itemize}
+
+For regression we use the $\epsilon$-sensitive loss function 
+\[
+    l_{ \epsilon } ( y , \hat{ y } ) = 
+    \begin{cases}
+        0 & \text{if } \lvert y - \hat{ y } \rvert \leq \epsilon
+        \\
+        \lvert y - \hat{ y } \rvert - \epsilon & \text{otherwise}
+    \end{cases}
+\]
+to define the entire loss
+\[
+    \mathcal{ L } 
+    = 
+    \frac{1}{2}
+    \lVert w \rVert^2 + C \sum_{ i = 1 }^N l_\epsilon ( \hat{y}_i , y_i )
+\]
+we can solve this using constrained optimization and slack variables.
+
+The references for this section are given in
+\begin{center}
+    \cite[ch. 17.1, 17.3]{pml1Book}
+    \cite[ch. 7.1.0 - 7.1.2]{Pattern_recognition_machine_learning}
+\end{center}
+
+
+\section{Neural Networks - Multi-Layer Perceptron}
+
+Our classical linear regression model or logistic regression model are build from the composition of some linear function and some activation function, which can be visualized via a neural network.
+
+Popular activation functions are given by 
+
+\begin{itemize}
+    \item 
+    $ \ReLU ( z ) = \max ( 0 , z ) $
+
+    \item 
+    $ \sigmoid ( z ) = \frac{ 1 }{ 1 + e^{ - z } }$
+
+    \item 
+    $ \tanh ( z ) = \frac{ e^z - e^{ - z } }{ e^z + e^{ - z } } $
+\end{itemize}
+
+A deep neural network is one with multiple hidden layers, examples can be obtained by stacking shallow neural networks, resulting in one refining the other.
+
+\begin{lem}
+    We obtain all piecewise linear functions as a neural network with one hidden layer and $ \ReLU $ activation function.
+\end{lem}
+
+\begin{defi}
+    A multi-layer preceptron (MLP) is a function $ f \colon \mathbb{ R }^{ d_{ in } } \to \mathbb{ R }^{ d_{ out } } $ defined as:
+    \begin{align*}
+        &h^{ ( 1 ) } = \act ( W^{ ( 1 ) } x + b^{ ( 1 ) } )
+        \\
+        &h^{ ( 2 ) } = \act ( W^{ ( 2 ) } h^{ ( 1 ) } + b^{ ( 2 ) } )
+        \\
+        \vdots
+        \\
+        &y = W^{ ( L ) } h^{ ( L - 1 ) } + b^{ ( L ) }
+    \end{align*}
+    hyperparameters are depth: Number of Layers $ L $ and width and Number of hidden units per layer.
+\end{defi}
+
+One can apply the universal approximation theorem to deep NNs.
+
+\begin{exmp}
+    With a deep NN we can solve the classification task for some non-linearly seperable datasets (XOR dataset).
+    Take the model 
+    \[
+        f ( x , w ) 
+        = 
+        \sigma ( w^T \phi ( x ) + b ) 
+        = 
+        \sigma \bigg( b + \sum_{ j = 1 }^M w_j \phi_j ( x ) \bigg) 
+    \]
+    where $ \phi_j $ are nonlinear basis functions.
+\end{exmp}
+
+\begin{rmk}
+    How do we determine the loss function for a deep neural network, common choices are:
+    \begin{center}
+    \begin{tabular}{c|c|c|c}
+         target & $ p ( y \mid x ) $ & Final layer & Loss function \\
+         \hline
+         Binary &  Bernoulli & Sigmoid & Binary Cross entropy \\
+         Discrete & Categorical & Softmax & Cross-entropy \\
+         Continuous & Gaussian & Identity & Mean squared error
+    \end{tabular}
+    \end{center}
+
+    Since we are free to choose our loss function, many model types differ only in their choice of loss.
+\end{rmk}
+
+The main references for this chapter are given by
+\begin{center}
+    \cite[ch. 3,4,5]{prince2023understanding}
+\end{center}
+
+\section{Convolutional Neural Networks}
+
+\begin{defi}
+    A function $ f $ is \textbf{invariant} to a transformation $ T $ if for all $ x $ it holds 
+    \[
+        f ( T ( x ) ) 
+        =
+        f ( x ) 
+    \]
+    and it is called \textbf{equivariant} if for all $ x $
+    \[
+        f ( T ( x ) ) 
+        = 
+        T ( f ( x ) ). 
+    \]
+\end{defi}
+
+
+For example image segmentation should be invariant w.r.t. translation, rotation and scaling.
+
+\begin{defi}
+    Convolution is given by taking the weighted sum of inputs $ x $ as output $ z $, we have the following parameters
+    \begin{itemize}
+        \item 
+        Filter size: Number of nearby inputs. (often odd to have center)
+
+        \item 
+        Stride: How many steps filter is moved as we slide.
+
+        \item 
+        Dilation: How many steps we skip when applying the filter.
+
+        \item 
+        Padding: How we handle the edges of the inputs.
+    \end{itemize}
+    Let $ \act $ be an activation function and $ b $ be a bias.
+    Let $ n $ be the Filter size (i.e. we have waits $ \omega_i , 1 \leq  i \leq n $ , $ s $ the stride and $ N $ the number of inputs.
+    We obtain the filter by setting 
+    \[
+    X
+    =
+    \begin{pmatrix}
+        x_{ - \lfloor n/2 \rfloor + 1 } 
+        &
+        x_{ - \lfloor n/2 \rfloor + 1 + s } 
+        &
+        \dots
+        &
+        x_{ - \lfloor n/2 \rfloor + 1 + j s } 
+        &
+        \dots 
+        &
+        x_{ - \lfloor n/2 \rfloor + 1  + \lfloor N / s \rfloor s} 
+        \\
+        \vdots
+        &
+        \vdots 
+        &
+        \ddots
+        &
+        \vdots
+        &
+        \ddots
+        &
+        \vdots 
+        \\
+        x_{ \lceil n/2 \rceil } 
+        &
+        x_{ \lceil n/2 \rceil + s } 
+        &
+        \dots
+        &
+        x_{ \lceil n/2 \rceil + j s } 
+        &
+        \dots
+        &
+        x_{ \lceil n/2 \rceil + \lfloor N / s \rfloor s } 
+    \end{pmatrix},
+    \]
+    where the values $ x_i $ for $ i < 0 $ and $ i > N $ are chosen according to the padding, so $ X_{ k , l } = ( x_{ - \lfloor n/2 \rfloor + 1 + k  + l s }  ) $ for $  0 \leq k < n $ and $ 0 \leq l \leq \lfloor N / s \rfloor $.
+    The output $ z_i $ is then defined as
+    \[
+        z_i = \act ( b + ( ( \omega_1 , \dotsc , \omega_n ) X )_{ 1 , i } ).
+    \]
+\end{defi}
+
+We can also have 2d-convolutional layers.
+The convolutional kernel/ filter is now a matrix, for example let $ W \in \mathbb{ R } ^{ 3 \times 3 } $ be a weight matrix then 
+\[
+    h_{ i j } = \act ( b + \sum_{ m = 1 }^3 \sum_{ n = 1 }^3 w_{ m n } x_{ i + m - 2 , j + n - 2 } )
+\]
+is the output of the neural network.
+The terminology is equivalent to the one-dimensional case.
+
+\subsection{downsampling and upsampling}
+
+Reducing for example the dimensions of a dataset (f.e. an image), can be done by pooling.
+That is dividing the dataset into patches and then taking maximum (resp. mean) for maximum pooling (resp. mean pooling).
+
+Increasing the dimensions of the dataset can be done by repeating a datapoint, that is every data point, is turned into a subset containing only that datapoint.
+One can interpolate the values between the pixels. 
+
+The overall architecture is now stacking convolutional and pooling layers, and using an MLP at the end.
+
+References for this section are
+\begin{center}
+    \cite[ch.10]{prince2023understanding}
+\end{center}
+
+\section{training networks}
+
+The main idea of this section is backpropagation, that is 
+\begin{enumerate}
+    \item 
+    Write your function (model) as a composition of modules,
+
+    \item 
+    work out the local derivatives,
+
+    \item 
+    do a forward pass for some $ x $, i.e. compute the function $ f ( x ) $ and remember intermediate values,
+
+    \item 
+    compute the local derivatives for $ x $,
+
+    \item 
+    obtain the global derivative by multiplying the local derivatives.
+\end{enumerate}
+
+If a function has multiple inputs, we compute the derivative along each of the paths.
+If the computational graph contains multiple paths from some vertex $ x $ to some vertex $ c $ then we sum along each of the paths.
+
+\begin{defi}
+    Let $ f \colon \mathbb{ R }^n \to \mathbb{ R }^m $  be a function and let $ a = f ( x ) $. The Jacobian is an $ m \times n $ matrix of partial derivatives
+    \[
+        \frac{ \partial a }{ \partial x } 
+        =
+        \begin{pmatrix}
+            \frac{ \partial a_1 }{ \partial x_1 }
+            &
+            \dotsc 
+            &
+            \frac{ \partial a_1 }{ \partial x_n }
+            \\
+            \vdots 
+            &
+            \ddots
+            &
+            \vdots
+            \\
+            \frac{ \partial a_m }{ \partial x_1 }
+            &
+            \dotsc 
+            &
+            \frac{ \partial a_m }{ \partial x_n }
+        \end{pmatrix}
+    \]
+    Let $ g \colon \mathbb{ R }^m \to \mathbb{ R } $ and let $ c = g ( a ) $.
+    The gradient $ \nabla_a c \in \mathbb{ R }^m $ is the transpose of the Jacobian 
+    $ \frac{ \partial c }{ \partial a } \in \mathbb{ R }^{ 1 \times m } $.
+    \[
+        \nabla_a c
+        =
+        \bigg( \frac{ \partial c }{ \partial a } \bigg)^T 
+    \]
+    We can write the chain rule thus as
+    \[
+        \frac{ \partial c }{ \partial x_j } 
+        = 
+        \sum_{ i = 1 }^m \frac{ \partial c }{ \partial a_i } \frac{ \partial a_i }{ \partial x_j }
+    \]
+    in matrix form this becomes 
+    \[
+        \frac{ \partial c }{ \partial x } = \frac{ \partial c }{ \partial a } \frac{ \partial a }{ \partial x }
+    \]
+    or equivalently 
+    \[
+        \partial_x c 
+        =
+        \bigg( \frac{ \partial a }{ \partial x } \bigg)^T \nabla_a c.
+    \]
+
+    Problem for linear regression, we have $ \widehat{ y } = V \sigma ( Wx + b ) + c $ and $ \mathcal{ L } = ( \widehat{ y } - y )^2 $, i.e. $ a = Wx + b , h = \sigma ( a ) , \widehat{ y } = V h + c $ and $ \mathcal{ L } = ( \widehat{ y } - y )^2 $.
+    In order to optimize $ W $ with gradient descent, need to compute 
+    \[
+        \frac{ \partial \mathcal{ L } }{ \partial W }
+        =
+        \frac{ \partial \mathcal{ L } }{ \partial \widehat{ y } } 
+        \frac{ \partial \widehat{ y } }{ \partial h } 
+        \frac{ \partial h }{ \partial a } 
+        \frac{ \partial a }{ \partial W }.
+    \]
+    So what is the derivative w.r.t. a matrix?
+    We can calculate
+    \[
+        \frac{ \partial \mathcal{ L } } { \partial W_{ kl } } 
+        =
+        \frac{ \partial{ \mathcal{ L } } }{ \partial a }
+        \frac{ \partial a }{ \partial W_{ kl } }
+        =
+        \frac{ \partial \mathcal{ L } }{ \partial a_k } x_l.
+    \]
+    We can write this as a matrix and obtain
+    \[
+        \frac{ \partial \mathcal{ L } }{ \partial W }
+        =
+        \bigg( \frac{ \partial \mathcal{ L } }{ \partial a } \bigg)^T x^T.
+    \]
+\end{defi}
+
+\begin{algo}
+    An affine layer is defined as 
+    \begin{algorithmic}
+        \State{ $ W \gets W $}
+        \State{ $ b \gets b $}
+            \State{ $ y \gets W x + b $ }
+            \State{ $ \big( \frac{ \partial \mathcal{ L } }{ \partial W } \big) \gets x \frac{ \partial \mathcal{ L } }{ \partial a } $ }                \State{ $ \frac{ \partial \mathcal{ L } }{ \partial x } \gets \frac{ \partial \mathcal{ L } }{ \partial a } W $ }
+                \State{ $ \frac{ \partial \mathcal{ L } }{ \partial b } \gets \frac{ \partial \mathcal{ L } }{ \partial a } $ }
+    \end{algorithmic}
+    The first operation is the \textbf{forward pass} and computes the output of the module, the other three are called \textbf{backward pass} and accumulate the total gradient.
+\end{algo}
+
+\subsection{Initialization}
+
+We want to initialize our weights in some smart manner.
+For example we need to initialize all weights differently, otherwise they will behave the same way through the whole learning process.
+Thus we we initialize with small random values for exmple $ \mathcal{ N } ( 0 , \sigma^2 ) $ distributed.
+Furthermore we need to initialize $ W $ such that the variance does not explode or vanish as we pass inputs through the layers, we initialize the cariance such that 
+\[
+    \sigma^2 
+    =
+    \frac{ 2 }{ \text{fan-in + fan-out} } 
+    = 
+    \frac{ 2 }{ D_{ in } + D_{ out } }.
+\]
+Alternatively we can use 
+\[
+    W \sim Uniform \bigg( - \sqrt{ \frac{ 6 }{ \text{ fan-in + fan-out } } } , \sqrt{ \frac{ 6 }{ \text{ fan-in + fan-out } } } \bigg).
+\]
+
+\subsection{Hyperparameter optimization}
+
+On a NN, we can tune
+\begin{itemize}
+    \item 
+    number of hidden layer
+
+    \item 
+    number of hidden units
+
+    \item 
+    type of activation function
+
+    \item 
+    optimizer (SGD, ADAM, ADADELTA, etc. )
+
+    \item 
+    learning rate schedule
+
+    \item 
+    data preprocessing
+
+    \item 
+    type of regularization
+\end{itemize}
+
+plan is to potimize programmatically with random search, Bayesian optimization, meta learning (backpropagate through the training procedure),
+
+\subsection{shattered gradients, skip connections and batch normalization}
+
+To reduce earlier layers influence on the later ones (all derivatives in later layers are determined in terms of earlier ones) one can introduce residual blocks, where the input is added to the ouput of some layer of the neural network.
+\[
+    h^{ ( k + 1 ) } = f ( h^{ ( k ) } ) + h^{ ( k ) } 
+\]
+
+\textbf{Batch-normalization} stabilizes the distribution of each layer's activations to be zero mean and unit varience using mini-batch statistics, this results in a linear increase in variance for skip-connections.
+\[
+    h \leftarrow \frac{ h - \mathbb{ E }_{ \mathcal{ B } } [ h ] }{ \sqrt{ \var_{ \mathcal{ B } } [ h ] } + \epsilon }
+\]
+One can also introduce a parameter $ \gamma $ and offset $ \beta $ and
+set
+\[
+    h \leftarrow \gamma h + \beta. 
+\]
+
+To summarize
+\begin{enumerate}
+    \item 
+    Initialization is crucial for training deep neural networks.
+
+    \item 
+    Skip connections prevent shattered gradients in deep NNs.
+
+    \item 
+    We use regularization methods like dropout and batch normalization.
+\end{enumerate}
+
+References for this section are
+\begin{center}
+    \cite[ch.7,11]{prince2023understanding},\cite[ch.7,11]{Goodfellow-et-al-2016}
+\end{center}
+
+\section{PCA}
+
+We would like to do dimensionality reduction on our data, computationally more efficient, possibly enables visualization, denoising.
+
+\begin{defi}
+    Let $ X \in \mathbb{ R }^{ n \times m } $ be a dataset-matrix a \textbf{feature selection} is a matrix $ W \in \mathbb{ R }^{ m \times l } $ with $ l < m $ such that every row and every column of $ W $ have at most one nonzero entry, that is equal to 1.
+    Then $ X W $ has the selection of the features given by nonzero rows of $ W $.  
+\end{defi}
+
+This only work if the features are uncorrelated.
+To get around this problem we want to do \textbf{PCA} principal component analysis:
+\begin{enumerate}
+    \item 
+    Change to a coordinate system such that the data is linearly uncorrelated,
+
+    \item 
+    drop low-variance dimensions.
+\end{enumerate}
+
+\begin{defi}
+\label{reconstruction_error}
+    Let $ x_1, \dotsc , x_n \in \mathbb{ R }^D $ and let $ W \in \mathbb{ R }^{ D \times L } $ be a feature selection.
+    Let 
+    \begin{align*}
+        z &= \encode ( x ) =  W^T x , x \in \mathbb{ R }^D
+        \\
+        \widehat{ x } &= \decode( z ) = W z  , z \in \mathbb{ R }^L
+    \end{align*}
+    then the \textbf{reconstruction error} is defined as 
+    \[
+        \mathcal{ L } ( W ) 
+        =
+        \frac{ 1 }{ N } \sum_{ n = 1 }^N \lVert x_n - \decode ( \encode ( x_n , W ) , W ) \rVert_2^2.
+        =
+        \frac{ 1 }{ N } \lVert X - W^T X W^T \rVert_2^2
+    \]
+\end{defi}
+
+
+\begin{comment}
+
+
+    
+\section{Privacy}
+    Many real-world, societal, etc. factors we also want to train a model on, we focus on Privacy and Fairness. 
+    Problem: We can infer sensitive information (specifics of the training data) from the models behaviour.
+    Solution: Introduce randomization to provide plausible deniability.
+
+    The toy example is that the participant randomly (f.e. determined by a coin flip) answers either truthfully or randomly, thus one cannot infer from the answer, which of the cases happened, but macroscopically, i.e. statistically one can still deduce results from the data.
+
+    \begin{defi}
+        We call $ X , X' $ neighboring datasets if $ \lvert X \Delta X' \rvert = \lvert X \setminus X ' \cup X' \setminus X \rvert = 1 $.
+    \end{defi}
+
+    \begin{defi}
+        A randomized mechanism $ \mathcal{ M }_f $ is a procedure that adds randomness when computing $ f $ in the input, output, or during the computation.
+    \end{defi}
+
+    \begin{exmp}
+        $ \mathcal{ M }_f ( X ) = f ( X ) + \mathcal{ N } ( 0 , \sigma^2 ) $
+    \end{exmp}
+
+    \begin{defi/prop}
+        A randomized mechanism $ \mathcal{ M }_f \colon \mathcal{ X } \to \mathcal{ Y } $ is $ \epsilon $-differentially private, if for all neighbouring inputs $ X \simeq X' $ and for all $ Y  \subseteq \mathcal{ Y } $ we have :
+        \[
+            \mathbb{ P } [ \mathcal{ M }_f ( X ) \in Y  ] 
+            \leq
+            e^{ \epsilon } \mathbb{ P } [ \mathcal{ M }_f ( X' ) \in Y ]
+        \]
+        this implies that 
+        \[
+            e^{ - \epsilon }
+            \leq 
+            \frac{ \mathbb{ P } [ \mathcal{ M }_f ( X ) \in Y  ]  }{ e^{ \epsilon } \mathbb{ P } [ \mathcal{ M }_f ( X' ) \in Y ] }
+            \leq 
+            e^{ \epsilon }.
+        \]
+        Smaller $ \epsilon $ (\underline{privacy parameter}) implies better privacy.
+    \end{defi/prop}
+
+    \begin{defi}
+        The global sensitivity of a function $ f \colon \mathcal{ X } \to \mathbb{ R }^d $ is $ \Delta_p = \sup_{ X \simeq X' } \lVert f ( X ) - f ( X ' ) \rVert_p , \Delta_p $ measures how much a single datapoint can maximally change the output of the function.
+    \end{defi}
+
+    \begin{exmp}{Laplace mechanism}
+        \begin{enumerate}
+            \item 
+            Compute the function for some dataset $ f ( X ) $
+
+            \item 
+            Sample i.i.d Laplace noise $ Z \sim \Lap ( 0 , \frac{ \Delta_1 }{ \epsilon } )^d $
+
+            \item 
+            Reveal the noisy value $ f ( X ) + Z $
+        \end{enumerate}
+    \end{exmp}
+
+    \begin{exmp}{Laplace mechanism for the mean}
+        Compute the mean $ \mu $
+        
+    \end{exmp}
+\end{comment}
+\printbibliography
+\end{document}
+
